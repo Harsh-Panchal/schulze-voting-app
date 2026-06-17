@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8080/api/v1
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Placeholder backend service (replace with real Go backend later)
+  backend:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    # TODO: Replace with actual Go backend image
+    # build:
+    #   context: ../schulze-backend
+    #   dockerfile: Dockerfile
+    restart: unless-stopped

@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.gitignore
+README.md
+AGENTS.md
+CLAUDE.md
+docker-compose.yml
+k8s/
+*.md

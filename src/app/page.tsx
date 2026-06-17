@@ -1,65 +1,70 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="container mx-auto px-4 py-16">
+      {/* Hero Section */}
+      <div className="mx-auto max-w-3xl text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          Fair Voting Made Simple
+        </h1>
+        <p className="mt-6 text-lg leading-8 text-gray-600">
+          Create elections where voters rate candidates on a 0–10 scale. The
+          Schulze beatpath method ensures the fairest winner — combining
+          majority preferences with rating intensity for transparent, meaningful
+          results.
+        </p>
+        <div className="mt-10 flex items-center justify-center gap-x-6">
+          <Link
+            href="/create"
+            className="rounded-md bg-gray-900 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Create Election
+          </Link>
         </div>
-      </main>
+      </div>
+
+      {/* Features */}
+      <div className="mx-auto mt-24 max-w-4xl">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+          <div className="text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+              <span className="text-xl">⚖️</span>
+            </div>
+            <h3 className="mt-4 text-base font-semibold text-gray-900">
+              Condorcet Fair
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              If one option is preferred over every other in head-to-head
+              comparisons, it wins. No vote splitting.
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+              <span className="text-xl">📊</span>
+            </div>
+            <h3 className="mt-4 text-base font-semibold text-gray-900">
+              Intensity Aware
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Rating differences matter. A strong preference (9 vs 2) counts
+              more than a slight one (6 vs 5).
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+              <span className="text-xl">🎯</span>
+            </div>
+            <h3 className="mt-4 text-base font-semibold text-gray-900">
+              Clear Results
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Get a winner, a ranked list, and percentage scores that show how
+              strongly each option dominated.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
