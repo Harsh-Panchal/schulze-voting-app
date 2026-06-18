@@ -6,7 +6,7 @@
  * When backend is ready, replace implementations with real fetch() calls.
  */
 
-import { API_BASE_URL, DEFAULT_ALPHA, DEFAULT_BETA } from "./constants";
+import { DEFAULT_ALPHA, DEFAULT_BETA } from "./constants";
 import type {
   Election,
   ElectionResults,
