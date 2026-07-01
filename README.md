@@ -1,4 +1,4 @@
-# Schulze Voting App — Frontend
+# Schulze Voting App
 
 A fair voting platform using the Schulze beatpath method with rating intensity. Voters rate candidates on a 0–10 scale, and the system produces a Condorcet-compliant winner with percentage scores.
 
@@ -6,27 +6,35 @@ A fair voting platform using the Schulze beatpath method with rating intensity. 
 
 ## Prerequisites
 
-- **Node.js** 22+ (recommend using [nvm](https://github.com/nvm-sh/nvm))
+- **Node.js** 22+
 - **npm** 10+
-- **Docker** (for containerized builds)
-- **Docker Compose** (optional, for local multi-service dev)
+- **Docker Desktop** (for local PostgreSQL database)
 
 ---
 
 ## Quick Start (Local Development)
 
-```bash
-# 1. Install dependencies
+```powershell
+# 1. Start PostgreSQL database (Docker Desktop must be running)
+docker compose up -d
+
+# 2. Install dependencies
 npm install
 
-# 2. Run development server (hot-reload enabled)
+# 3. Generate Prisma client
+npx prisma generate
+
+# 4. Run database migration (creates tables)
+npx prisma migrate dev --name init
+
+# 5. Seed sample data (optional)
+npx prisma db seed
+
+# 6. Start the app
 npm run dev
 
-# 3. Open in browser
-#    http://localhost:3000
+# 7. Open in browser → http://localhost:3000
 ```
-
-The app runs with **mock data** stored in browser localStorage — no backend needed for development.
 
 ---
 
@@ -38,86 +46,54 @@ The app runs with **mock data** stored in browser localStorage — no backend ne
 | `npm run build` | Production build (outputs to `.next/`) |
 | `npm run start` | Start production server (run after build) |
 | `npm run lint` | Run ESLint to check code quality |
+| `npm run db:migrate` | Run Prisma database migrations |
+| `npm run db:seed` | Seed database with sample data |
+| `npm run db:studio` | Open Prisma Studio (visual DB browser) |
+| `npm run db:generate` | Regenerate Prisma client after schema changes |
+
+---
+
+## Database Commands (Docker Desktop)
+
+```powershell
+# Start PostgreSQL
+docker compose up -d
+
+# Check it's running
+docker compose ps
+
+# View database logs
+docker compose logs db
+
+# Connect to PostgreSQL directly (psql)
+docker exec -it schulze-db psql -U postgres -d schulze
+
+# Stop PostgreSQL (data is preserved)
+docker compose down
+
+# Stop AND delete all data (fresh start)
+docker compose down -v
+
+# Restart database
+docker compose restart db
+```
 
 ---
 
 ## Testing the App Locally
 
 ### Manual Testing Flow:
-1. Start dev server: `npm run dev`
+1. Start the database and dev server (see Quick Start above)
 2. Go to `http://localhost:3000` → Landing page
 3. Click **"Create Election"** → Fill in title + candidates → Submit
 4. You'll be redirected to the **Vote** page → Rate candidates with sliders → Submit
 5. Click **"View Results"** → Close election → See winner + ranked list
 
-### Health Check Endpoint:
-```bash
-curl http://localhost:3000/api/health
-# Response: {"status":"ok","timestamp":"...","service":"schulze-voting-frontend"}
+### Browse Database Visually:
+```powershell
+npx prisma studio
+# Opens at http://localhost:5555
 ```
-
----
-
-## Building & Running with Docker
-
-### Build the Docker Image
-
-```bash
-# From the project root (where Dockerfile is)
-docker build -t schulze-frontend .
-```
-
-This creates a multi-stage build:
-- Stage 1: Install dependencies
-- Stage 2: Build Next.js (standalone output)
-- Stage 3: Minimal production image (~50MB)
-
-### Run the Docker Container
-
-```bash
-# Run on port 3000
-docker run -p 3000:3000 schulze-frontend
-
-# Run with custom backend API URL
-docker run -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://backend:8080/api/v1 schulze-frontend
-
-# Run detached (background)
-docker run -d -p 3000:3000 --name schulze-frontend schulze-frontend
-```
-
-### Verify Container is Running
-
-```bash
-# Check health
-curl http://localhost:3000/api/health
-
-# Check container status
-docker ps
-docker logs schulze-frontend
-```
-
-### Stop & Remove Container
-
-```bash
-docker stop schulze-frontend
-docker rm schulze-frontend
-```
-
----
-
-## Docker Compose (Frontend + Placeholder Backend)
-
-```bash
-# Start all services
-docker-compose up --build
-
-# Stop all services
-docker-compose down
-```
-
-This starts:
-- **Frontend** on `http://localhost:3000`
-- **Backend placeholder** (nginx) on `http://localhost:8080`
 
 ---
 
@@ -125,11 +101,11 @@ This starts:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8080/api/v1` | Backend API base URL |
-| `PORT` | `3000` | Port the frontend listens on |
-| `NODE_ENV` | `development` | Set to `production` in Docker |
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/schulze?schema=public` | PostgreSQL connection string |
+| `PORT` | `3000` | Port the app listens on |
+| `NODE_ENV` | `development` | Set to `production` for deployment |
 
-In Kubernetes, inject these via ConfigMaps or Secrets.
+Environment variables are stored in `.env` (gitignored). For production, set `DATABASE_URL` to your hosted PostgreSQL instance (Azure, AWS, GCP).
 
 ---
 
@@ -137,48 +113,43 @@ In Kubernetes, inject these via ConfigMaps or Secrets.
 
 ```
 src/
-├── app/                        # Next.js App Router pages
-│   ├── page.tsx                # Landing page
-│   ├── create/page.tsx         # Create election form
-│   ├── vote/[id]/page.tsx      # Voting page (rate candidates 0-10)
-│   ├── results/[id]/page.tsx   # Results page (winner + rankings)
-│   └── api/health/route.ts     # Health endpoint for K8s probes
+├── app/                           # Next.js App Router
+│   ├── page.tsx                   # Landing page
+│   ├── layout.tsx                 # Root layout (Header + Footer)
+│   ├── globals.css                # Tailwind styles
+│   ├── create/page.tsx            # Create election form
+│   ├── vote/[id]/page.tsx         # Voting page (rate candidates 0-10)
+│   ├── results/[id]/page.tsx      # Results page (winner + rankings)
+│   └── api/elections/             # API routes (Next.js server-side)
+│       ├── route.ts               # GET /api/elections, POST /api/elections
+│       └── [id]/
+│           ├── route.ts           # GET/PATCH /api/elections/:id
+│           ├── ballots/route.ts   # POST /api/elections/:id/ballots
+│           └── results/route.ts   # GET /api/elections/:id/results
 ├── components/
-│   ├── ui/                     # shadcn/ui components (Button, etc.)
-│   ├── election/               # Election-specific components (future)
-│   └── layout/                 # Header, Footer
+│   ├── ui/                        # shadcn/ui components (Button, etc.)
+│   └── layout/                    # Header, Footer
 ├── lib/
-│   ├── types.ts                # TypeScript interfaces (API contract)
-│   ├── api.ts                  # API service layer (mock → swap to real)
-│   ├── constants.ts            # App constants
-│   └── utils.ts                # Utility functions (cn helper)
-├── hooks/                      # Custom React hooks (future)
-└── context/                    # React context providers (future)
+│   ├── api.ts                     # Frontend API client (fetch calls)
+│   ├── db.ts                      # Prisma client singleton
+│   ├── types.ts                   # TypeScript interfaces
+│   ├── constants.ts               # App constants
+│   └── utils.ts                   # Utility functions
+├── generated/prisma/              # Auto-generated Prisma client (gitignored)
+prisma/
+├── schema.prisma                  # Database schema (Election, Candidate, Ballot)
+└── seed.ts                        # Sample data seeder
 ```
 
 ---
 
 ## Key Architecture Decisions
 
-1. **`output: "standalone"`** in `next.config.ts` — produces a minimal Node.js server for Docker (no full `node_modules` needed in container)
-2. **Mock API layer** (`src/lib/api.ts`) — all backend calls go through this single file. When the real Go backend is ready, only this file changes.
-3. **Type-safe API contract** (`src/lib/types.ts`) — shared interface definitions ensure frontend and backend stay in sync.
-4. **Health endpoint** (`/api/health`) — used by Kubernetes liveness/readiness probes.
-
----
-
-## Kubernetes Deployment
-
-See `k8s/README.md` for K8s manifest details. Quick overview:
-
-```bash
-# Build & push image to registry
-docker build -t your-registry/schulze-frontend:latest .
-docker push your-registry/schulze-frontend:latest
-
-# Apply K8s manifests (when created)
-kubectl apply -f k8s/
-```
+1. **Full-stack Next.js** — API routes (`src/app/api/`) handle server-side logic, no separate backend service needed.
+2. **PostgreSQL + Prisma ORM** — Type-safe database access with auto-generated client and built-in migrations.
+3. **Driver adapter pattern** — Uses `@prisma/adapter-pg` for direct PostgreSQL connection (Prisma 7).
+4. **Schulze algorithm** — Computed server-side in the results API route using pairwise beatpath with Floyd-Warshall.
+5. **Single API layer** (`src/lib/api.ts`) — All frontend-to-backend calls go through this one file.
 
 ---
 
@@ -188,7 +159,7 @@ kubectl apply -f k8s/
 |---------|----------|
 | `npm install` fails | Ensure Node.js 22+ is installed |
 | Port 3000 in use | Kill existing process or use `PORT=3001 npm run dev` |
-| Docker build fails | Ensure Docker Desktop is running |
-| Health check fails in container | Wait 10s for startup (see HEALTHCHECK in Dockerfile) |
-| localStorage not persisting | Normal for Docker — data lives in browser, not container |
+| Database connection refused | Ensure Docker Desktop is running and run `docker compose up -d` |
+| `prisma migrate` fails | Check `DATABASE_URL` in `.env` and that PostgreSQL container is running |
+| Prisma client errors | Run `npx prisma generate` to regenerate the client |
 

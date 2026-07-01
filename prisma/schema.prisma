@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- Models ---
+
+enum ElectionStatus {
+  draft
+  active
+  closed
+}
+
+model Election {
+  id          String         @id @default(uuid())
+  title       String
+  description String?
+  status      ElectionStatus @default(draft)
+  alpha       Float          @default(0.5)
+  beta        Float          @default(1.0)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  closedAt    DateTime?      @map("closed_at")
+
+  candidates Candidate[]
+  ballots    Ballot[]
+
+  @@map("elections")
+}
+
+model Candidate {
+  id          String  @id @default(uuid())
+  electionId  String  @map("election_id")
+  name        String
+  description String?
+  position    Int
+
+  election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+
+  @@index([electionId])
+  @@map("candidates")
+}
+
+model Ballot {
+  id          String   @id @default(uuid())
+  electionId  String   @map("election_id")
+  ratings     Json     // Record<candidateId, rating 0-10>
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+
+  @@index([electionId])
+  @@map("ballots")
+}
