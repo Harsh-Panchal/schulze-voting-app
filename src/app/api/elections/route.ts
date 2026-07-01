@@ -4,7 +4,10 @@ import { prisma } from "@/lib/db";
 // GET /api/elections — list all elections
 export async function GET() {
   const elections = await prisma.election.findMany({
-    include: { candidates: { orderBy: { position: "asc" } } },
+    include: {
+      candidates: { orderBy: { position: "asc" } },
+      _count: { select: { ballots: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(elections);

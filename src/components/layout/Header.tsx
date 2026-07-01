@@ -9,6 +9,12 @@ export default function Header() {
         </Link>
         <nav className="flex gap-4">
           <Link
+            href="/elections"
+            className="text-sm font-medium text-gray-600 hover:text-gray-900"
+          >
+            Elections
+          </Link>
+          <Link
             href="/create"
             className="text-sm font-medium text-gray-600 hover:text-gray-900"
           >

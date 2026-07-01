@@ -78,3 +78,10 @@ export async function getResults(
   return res.json();
 }
 
+export async function deleteElection(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/elections/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete election");
+}
+
