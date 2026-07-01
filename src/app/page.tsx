@@ -21,6 +21,12 @@ export default function Home() {
           >
             Create Election
           </Link>
+          <Link
+            href="/elections"
+            className="rounded-md border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50"
+          >
+            Browse Elections
+          </Link>
         </div>
       </div>
 

@@ -48,3 +48,19 @@ export async function PATCH(
 
   return NextResponse.json(election);
 }
+
+// DELETE /api/elections/[id] — delete an election (cascades candidates & ballots)
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const election = await prisma.election.findUnique({ where: { id } });
+  if (!election) {
+    return NextResponse.json({ error: "Election not found" }, { status: 404 });
+  }
+
+  await prisma.election.delete({ where: { id } });
+  return new NextResponse(null, { status: 204 });
+}
