@@ -12,6 +12,3 @@ export const MAX_RATING = 10;
 export const DEFAULT_ALPHA = 0.5;
 export const DEFAULT_BETA = 1.0;
 
-// API base URL (injected at runtime via env variable)
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
