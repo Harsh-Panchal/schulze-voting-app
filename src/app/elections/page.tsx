@@ -5,7 +5,7 @@ import Link from "next/link";
 import { listElections, updateElectionStatus, deleteElection } from "@/lib/api";
 import type { Election } from "@/lib/types";
 
-type ElectionWithCount = Election & { _count?: { ballots: number } };
+type ElectionWithCount = Election & { _count?: { ballots: number; results: number } };
 
 type Tab = "active" | "closed";
 
@@ -105,20 +105,25 @@ export default function ElectionsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link
-                    href={
-                      activeTab === "active"
-                        ? `/vote/${election.id}`
-                        : `/results/${election.id}`
-                    }
-                    className={`rounded-md px-4 py-2 text-sm font-medium shadow-sm ${
-                      activeTab === "active"
-                        ? "bg-gray-900 text-white hover:bg-gray-700"
-                        : "bg-gray-100 text-gray-900 hover:bg-gray-200"
-                    }`}
-                  >
-                    {activeTab === "active" ? "Vote" : "View Results"}
-                  </Link>
+                  {activeTab === "active" ? (
+                    <Link
+                      href={`/vote/${election.id}`}
+                      className="rounded-md px-4 py-2 text-sm font-medium shadow-sm bg-gray-900 text-white hover:bg-gray-700"
+                    >
+                      Vote
+                    </Link>
+                  ) : (election._count?.results ?? 0) > 0 ? (
+                    <Link
+                      href={`/results/${election.id}`}
+                      className="rounded-md px-4 py-2 text-sm font-medium shadow-sm bg-green-600 text-white hover:bg-green-500"
+                    >
+                      View Results
+                    </Link>
+                  ) : (
+                    <span className="rounded-md px-4 py-2 text-sm font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                      Calculating...
+                    </span>
+                  )}
                   {activeTab === "active" ? (
                     <button
                       onClick={() => handleClose(election.id)}

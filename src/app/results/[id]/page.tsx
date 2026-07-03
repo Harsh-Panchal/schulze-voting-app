@@ -70,6 +70,20 @@ export default function ResultsPage() {
     );
   }
 
+  if (election.status === "closed" && !results) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-12">
+        <h1 className="text-3xl font-bold text-gray-900">{election.title}</h1>
+        <div className="mt-8 rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center">
+          <p className="text-lg font-medium text-yellow-800">⏳ Calculating Results...</p>
+          <p className="mt-2 text-sm text-yellow-600">
+            The Schulze algorithm is computing results. This page will update automatically.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-3xl font-bold text-gray-900">{election.title}</h1>

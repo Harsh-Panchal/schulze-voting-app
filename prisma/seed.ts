@@ -7,6 +7,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Clear existing data
+  await prisma.electionResult.deleteMany();
   await prisma.ballot.deleteMany();
   await prisma.candidate.deleteMany();
   await prisma.election.deleteMany();
@@ -85,6 +86,12 @@ async function main() {
 
   console.log(`Created closed election: "${closedElection.title}" (${closedElection.id})`);
   console.log(`  Submitted ${closedBallots.length} sample ballots`);
+
+  // Compute and store results for the closed election
+  const { computeAndStoreResults } = await import("../src/lib/schulze");
+  await computeAndStoreResults(closedElection.id);
+  console.log(`  Computed and stored results`);
+
   console.log("\nSeed complete!");
 }
 

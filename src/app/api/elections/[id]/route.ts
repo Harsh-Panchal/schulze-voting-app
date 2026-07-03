@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { computeAndStoreResults } from "@/lib/schulze";
 
 // GET /api/elections/[id] — get a single election
 export async function GET(
@@ -45,6 +46,11 @@ export async function PATCH(
     data,
     include: { candidates: { orderBy: { position: "asc" } } },
   });
+
+  // Compute and store results when closing an election
+  if (status === "closed") {
+    computeAndStoreResults(id).catch(console.error);
+  }
 
   return NextResponse.json(election);
 }
