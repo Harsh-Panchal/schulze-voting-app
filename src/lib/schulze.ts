@@ -37,8 +37,10 @@ export async function computeAndStoreResults(electionId: string): Promise<void> 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
-        const ri = ratings[candidateIds[i]] ?? 0;
-        const rj = ratings[candidateIds[j]] ?? 0;
+        const ri = ratings[candidateIds[i]];
+        const rj = ratings[candidateIds[j]];
+        // Skip if either candidate is unrated (null/undefined) in this ballot
+        if (ri == null || rj == null) continue;
         const diff = ri - rj;
         if (diff > 0) {
           d[i][j] += diff * election.beta;
