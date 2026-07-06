@@ -36,9 +36,17 @@ export async function PATCH(
     );
   }
 
-  const data: { status: "active" | "closed"; closedAt?: Date } = { status };
+  const data: { status: "active" | "closed"; closedAt?: Date | null } = { status };
   if (status === "closed") {
     data.closedAt = new Date();
+  } else {
+    // Reactivating: clear closedAt
+    data.closedAt = null;
+  }
+
+  // When reactivating, delete stored results (keep ballots)
+  if (status === "active") {
+    await prisma.electionResult.deleteMany({ where: { electionId: id } });
   }
 
   const election = await prisma.election.update({
