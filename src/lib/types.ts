@@ -65,7 +65,7 @@ export interface CreateElectionRequest {
 }
 
 export interface SubmitBallotRequest {
-  ratings: Record<string, number>; // candidateId → 0-10
+  ratings: Record<string, number | null>; // candidateId → 0-10 or null (unrated)
 }
 
 // --- Algorithm internals (for future visualization) ---

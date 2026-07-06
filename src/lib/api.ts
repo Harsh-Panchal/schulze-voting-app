@@ -73,6 +73,7 @@ export async function getResults(
   electionId: string
 ): Promise<ElectionResults | null> {
   const res = await fetch(`${API_URL}/elections/${electionId}/results`);
+  if (res.status === 202) return null; // results still calculating
   if (res.status === 400 || res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to fetch results");
   return res.json();

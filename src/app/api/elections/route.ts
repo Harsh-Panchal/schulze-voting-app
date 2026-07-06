@@ -6,7 +6,7 @@ export async function GET() {
   const elections = await prisma.election.findMany({
     include: {
       candidates: { orderBy: { position: "asc" } },
-      _count: { select: { ballots: true } },
+      _count: { select: { ballots: true, results: true } },
     },
     orderBy: { createdAt: "desc" },
   });

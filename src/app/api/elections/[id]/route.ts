@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { computeAndStoreResults } from "@/lib/schulze";
 
 // GET /api/elections/[id] — get a single election
 export async function GET(
@@ -35,9 +36,17 @@ export async function PATCH(
     );
   }
 
-  const data: { status: "active" | "closed"; closedAt?: Date } = { status };
+  const data: { status: "active" | "closed"; closedAt?: Date | null } = { status };
   if (status === "closed") {
     data.closedAt = new Date();
+  } else {
+    // Reactivating: clear closedAt
+    data.closedAt = null;
+  }
+
+  // When reactivating, delete stored results (keep ballots)
+  if (status === "active") {
+    await prisma.electionResult.deleteMany({ where: { electionId: id } });
   }
 
   const election = await prisma.election.update({
@@ -45,6 +54,11 @@ export async function PATCH(
     data,
     include: { candidates: { orderBy: { position: "asc" } } },
   });
+
+  // Compute and store results when closing an election
+  if (status === "closed") {
+    computeAndStoreResults(id).catch(console.error);
+  }
 
   return NextResponse.json(election);
 }

@@ -30,6 +30,7 @@ model Election {
 
   candidates Candidate[]
   ballots    Ballot[]
+  results    ElectionResult[]
 
   @@map("elections")
 }
@@ -41,7 +42,8 @@ model Candidate {
   description String?
   position    Int
 
-  election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  election Election         @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  results  ElectionResult[]
 
   @@index([electionId])
   @@map("candidates")
@@ -57,4 +59,21 @@ model Ballot {
 
   @@index([electionId])
   @@map("ballots")
+}
+
+model ElectionResult {
+  id            String   @id @default(uuid())
+  electionId    String   @map("election_id")
+  candidateId   String   @map("candidate_id")
+  rank          Int
+  percentage    Float
+  isWinner      Boolean  @default(false) @map("is_winner")
+  totalBallots  Int      @map("total_ballots")
+  computedAt    DateTime @default(now()) @map("computed_at")
+
+  election  Election  @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([electionId])
+  @@map("election_results")
 }
