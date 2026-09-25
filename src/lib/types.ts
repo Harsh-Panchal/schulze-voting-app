@@ -26,6 +26,7 @@ export interface Election {
   candidates: Candidate[];
   status: ElectionStatus;
   parameters: ElectionParameters;
+  creatorId: string;
   createdAt: string; // ISO date
   closedAt?: string; // ISO date
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 
 // GET /api/elections — list all elections
 export async function GET() {
@@ -13,8 +14,16 @@ export async function GET() {
   return NextResponse.json(elections);
 }
 
-// POST /api/elections — create a new election
+// POST /api/elections — create a new election (requires auth)
 export async function POST(request: Request) {
+  const user = await getSessionUser(request);
+  if (!user) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    );
+  }
+
   const body = await request.json();
   const { title, description, candidates, parameters } = body;
 
@@ -31,6 +40,7 @@ export async function POST(request: Request) {
       description: description || null,
       alpha: parameters?.alpha ?? 0.5,
       beta: parameters?.beta ?? 1.0,
+      creatorId: user.id,
       candidates: {
         create: candidates.map(
           (c: { name: string; description?: string }, i: number) => ({

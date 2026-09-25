@@ -1,6 +1,7 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
+import bcrypt from "bcryptjs";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
@@ -11,6 +12,18 @@ async function main() {
   await prisma.ballot.deleteMany();
   await prisma.candidate.deleteMany();
   await prisma.election.deleteMany();
+  await prisma.user.deleteMany();
+
+  // Create a sample user
+  const passwordHash = await bcrypt.hash("password123", 12);
+  const user = await prisma.user.create({
+    data: {
+      name: "Demo User",
+      email: "demo@example.com",
+      passwordHash,
+    },
+  });
+  console.log(`Created user: ${user.email} (password: password123)`);
 
   // Create a sample election
   const election = await prisma.election.create({
@@ -19,6 +32,7 @@ async function main() {
       description:
         "Vote for your favorite programming language. Rate each from 0 (dislike) to 10 (love).",
       status: "active",
+      creatorId: user.id,
       candidates: {
         create: [
           { name: "TypeScript", description: "JavaScript with types", position: 0 },
@@ -60,6 +74,7 @@ async function main() {
       description: "Where should we go for Friday lunch?",
       status: "closed",
       closedAt: new Date(),
+      creatorId: user.id,
       candidates: {
         create: [
           { name: "Pizza Place", position: 0 },
@@ -93,6 +108,7 @@ async function main() {
   console.log(`  Computed and stored results`);
 
   console.log("\nSeed complete!");
+  console.log("Login with: demo@example.com / password123");
 }
 
 main()

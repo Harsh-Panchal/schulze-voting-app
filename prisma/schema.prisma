@@ -18,6 +18,18 @@ enum ElectionStatus {
   closed
 }
 
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  elections Election[]
+
+  @@map("users")
+}
+
 model Election {
   id          String         @id @default(uuid())
   title       String
@@ -27,11 +39,14 @@ model Election {
   beta        Float          @default(1.0)
   createdAt   DateTime       @default(now()) @map("created_at")
   closedAt    DateTime?      @map("closed_at")
+  creatorId   String         @map("creator_id")
 
+  creator    User             @relation(fields: [creatorId], references: [id])
   candidates Candidate[]
   ballots    Ballot[]
   results    ElectionResult[]
 
+  @@index([creatorId])
   @@map("elections")
 }
 

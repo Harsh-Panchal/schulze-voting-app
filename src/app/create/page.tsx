@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createElection, updateElectionStatus } from "@/lib/api";
+import { createElection, updateElectionStatus, getCurrentUser } from "@/lib/api";
 import { DEFAULT_ALPHA, DEFAULT_BETA } from "@/lib/constants";
 
 export default function CreateElectionPage() {
@@ -14,6 +14,17 @@ export default function CreateElectionPage() {
   const [alpha, setAlpha] = useState(DEFAULT_ALPHA);
   const [beta, setBeta] = useState(DEFAULT_BETA);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    getCurrentUser().then((user) => {
+      if (!user) {
+        router.push("/signin");
+      } else {
+        setAuthChecked(true);
+      }
+    });
+  }, [router]);
 
   const addCandidate = () => setCandidates([...candidates, ""]);
 
@@ -50,6 +61,14 @@ export default function CreateElectionPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-12">
+        <p className="text-gray-500">Checking authentication...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-12">
