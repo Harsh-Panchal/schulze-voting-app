@@ -1,0 +1,37 @@
+name: schulze-voting-app
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: schulze-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: schulze
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      
+  app:
+    container_name: schulze-app
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+      target: runner
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+    restart: unless-stopped
+    init: true
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/schulze?schema=public
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

@@ -1,0 +1,19 @@
+# Only send build inputs, never local secrets, dependencies or OneDrive build output.
+**
+!Docker/
+!Docker/Dockerfile
+!Docker/Dockerfile.dockerignore
+!package.json
+!package-lock.json
+!next.config.ts
+!tsconfig.json
+!postcss.config.*
+!eslint.config.mjs
+!prisma.config.ts
+!prisma/
+!prisma/**
+!public/
+!public/**
+!src/
+!src/**
+src/generated/

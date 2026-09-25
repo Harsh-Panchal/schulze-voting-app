@@ -49,9 +49,13 @@ Prioritized backlog for the Schulze Voting App. MVP focus: **working demo deploy
 ### Phase 3: Containerization & Deployment
 
 #### 6. Containerize the Application
-- Create `Dockerfile` for the Next.js app (multi-stage build)
-- Update `docker-compose.yml` for local dev with both app + DB containers
-- Test the container locally
+- Docker configuration is grouped in `Docker\`: multi-stage Dockerfile, Compose, and Dockerfile-specific ignore rules
+- Added a non-root Alpine/Next.js standalone runtime with migration-only Prisma dependencies, merged before packaging to avoid duplicate layers; app startup applies migrations before starting the server
+- Added just two Compose services (`schulze-app` + `schulze-db`), without container health checks (deferred until after MVP)
+- Reuse the single `.env` at runtime; exclude secrets and local build output from images
+- Consolidated the initial SQL schema, including users and creator ownership; Prisma applies it without a PostgreSQL SQL-file mount
+- Build-only `NPM_REGISTRY` supports an IT-approved registry without disabling TLS verification
+- Docker build and isolated smoke tests verified: startup migrations/recovery, authentication, voting/results, restart persistence, and migration-error handling
 - **Priority**: HIGH — required for K8s deployment
 
 #### 7. Host PostgreSQL on Azure
@@ -82,6 +86,7 @@ Prioritized backlog for the Schulze Voting App. MVP focus: **working demo deploy
 - Application Insights or OpenTelemetry for traces
 - Structured logging (Winston or Pino)
 - Health check endpoints for K8s probes
+- Add Dockerfile/Compose health checks and database-readiness gating (not required for MVP)
 - Dashboard for request metrics, errors, latency
 
 ### 11. Improve UI
@@ -114,6 +119,12 @@ Prioritized backlog for the Schulze Voting App. MVP focus: **working demo deploy
 - Load testing to determine baseline resource needs
 - Cost optimization
 
+### 16. Move Migration Tooling Outside the App Image
+- Run Prisma migrations in a separate deployment job or CI/CD step instead of packaging the migration CLI in the app image
+- Start or roll out the app only after migrations succeed; preserve existing data and migration history
+- Keep only application runtime dependencies in the app image; investigate further runtime changes toward an image under 200 MB where feasible
+- Measure image size consistently and verify fresh deployment, upgrades, and restart behavior
+
 ---
 
 ## ✅ Completed
@@ -128,3 +139,4 @@ Prioritized backlog for the Schulze Voting App. MVP focus: **working demo deploy
 - Remove Ranking from Results — winner only (Phase 1)
 - Sign Up / Sign In with email + password + JWT (Phase 2)
 - Creator-Only Election Management — ownership enforcement (Phase 2)
+- Containerize the Application (Phase 3)
