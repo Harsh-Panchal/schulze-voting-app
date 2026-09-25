@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { listElections, updateElectionStatus, deleteElection } from "@/lib/api";
+import { listElections, updateElectionStatus, deleteElection, getCurrentUser, type AuthUser } from "@/lib/api";
 import type { Election } from "@/lib/types";
 
 type ElectionWithCount = Election & { _count?: { ballots: number; results: number } };
@@ -13,15 +13,35 @@ export default function ElectionsPage() {
   const [elections, setElections] = useState<ElectionWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("active");
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    listElections()
-      .then((data) => { if (!cancelled) setElections(data); })
+    Promise.all([listElections(), getCurrentUser()])
+      .then(([data, u]) => {
+        if (!cancelled) {
+          setElections(data);
+          setUser(u);
+        }
+      })
       .catch(console.error)
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+  // Auto-poll when any closed election is still calculating
+  useEffect(() => {
+    const hasCalculating = elections.some(
+      (e) => e.status === "closed" && (e._count?.results ?? 0) === 0
+    );
+    if (!hasCalculating) return;
+
+    const interval = setInterval(() => {
+      listElections().then(setElections).catch(console.error);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [elections]);
 
   function refreshElections() {
     listElections()
@@ -48,6 +68,7 @@ export default function ElectionsPage() {
   }
 
   const filtered = elections.filter((e) => e.status === activeTab);
+  const isCreator = (election: ElectionWithCount) => user?.id === election.creatorId;
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -124,27 +145,31 @@ export default function ElectionsPage() {
                       Calculating...
                     </span>
                   )}
-                  {activeTab === "active" ? (
-                    <button
-                      onClick={() => handleClose(election.id)}
-                      className="rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm font-medium text-yellow-800 hover:bg-yellow-100"
-                    >
-                      Close
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleReactivate(election.id)}
-                      className="rounded-md border border-green-300 bg-green-50 px-3 py-2 text-sm font-medium text-green-800 hover:bg-green-100"
-                    >
-                      Reactivate
-                    </button>
+                  {isCreator(election) && (
+                    <>
+                      {activeTab === "active" ? (
+                        <button
+                          onClick={() => handleClose(election.id)}
+                          className="rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm font-medium text-yellow-800 hover:bg-yellow-100"
+                        >
+                          Close
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleReactivate(election.id)}
+                          className="rounded-md border border-green-300 bg-green-50 px-3 py-2 text-sm font-medium text-green-800 hover:bg-green-100"
+                        >
+                          Reactivate
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(election.id, election.title)}
+                        className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                    </>
                   )}
-                  <button
-                    onClick={() => handleDelete(election.id, election.title)}
-                    className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100"
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             ))}

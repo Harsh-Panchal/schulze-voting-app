@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { computeAndStoreResults } from "@/lib/schulze";
+import { getSessionUser } from "@/lib/auth";
 
 // GET /api/elections/[id] — get a single election
 export async function GET(
@@ -20,12 +21,26 @@ export async function GET(
   return NextResponse.json(election);
 }
 
-// PATCH /api/elections/[id] — update election status
+// PATCH /api/elections/[id] — update election status (creator only)
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+  const user = await getSessionUser(request);
+  if (!user) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  const existing = await prisma.election.findUnique({ where: { id } });
+  if (!existing) {
+    return NextResponse.json({ error: "Election not found" }, { status: 404 });
+  }
+  if (existing.creatorId !== user.id) {
+    return NextResponse.json({ error: "Only the creator can manage this election" }, { status: 403 });
+  }
+
   const body = await request.json();
   const { status } = body;
 
@@ -63,16 +78,24 @@ export async function PATCH(
   return NextResponse.json(election);
 }
 
-// DELETE /api/elections/[id] — delete an election (cascades candidates & ballots)
+// DELETE /api/elections/[id] — delete an election (creator only)
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
 
+  const user = await getSessionUser(request);
+  if (!user) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   const election = await prisma.election.findUnique({ where: { id } });
   if (!election) {
     return NextResponse.json({ error: "Election not found" }, { status: 404 });
+  }
+  if (election.creatorId !== user.id) {
+    return NextResponse.json({ error: "Only the creator can delete this election" }, { status: 403 });
   }
 
   await prisma.election.delete({ where: { id } });

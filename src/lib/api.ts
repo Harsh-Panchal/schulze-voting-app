@@ -15,6 +15,21 @@ import type {
 
 const API_URL = "/api";
 
+// ---- Auth API ----
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+}
+
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  const res = await fetch(`${API_URL}/auth/me`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 // ---- Public API ----
 
 export async function createElection(

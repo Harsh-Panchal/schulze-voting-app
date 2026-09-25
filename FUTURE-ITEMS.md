@@ -123,3 +123,8 @@ Prioritized backlog for the Schulze Voting App. MVP focus: **working demo deploy
 - Browse Elections button on landing page
 - Header navigation link to Elections
 - Vote count display on election cards
+- Separate Result Table + Async Calculation (Phase 1)
+- Reactivate Behavior — erase results, keep ballots (Phase 1)
+- Remove Ranking from Results — winner only (Phase 1)
+- Sign Up / Sign In with email + password + JWT (Phase 2)
+- Creator-Only Election Management — ownership enforcement (Phase 2)

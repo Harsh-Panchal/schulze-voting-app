@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { getElection, getResults, updateElectionStatus } from "@/lib/api";
+import { getElection, getResults } from "@/lib/api";
 import type { Election, ElectionResults } from "@/lib/types";
 
 export default function ResultsPage() {
@@ -27,14 +27,6 @@ export default function ResultsPage() {
     load();
   }, [electionId]);
 
-  const handleCloseElection = async () => {
-    await updateElectionStatus(electionId, "closed");
-    const e = await getElection(electionId);
-    setElection(e);
-    const r = await getResults(electionId);
-    setResults(r);
-  };
-
   if (loading) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-12 text-center text-gray-500">
@@ -58,14 +50,8 @@ export default function ResultsPage() {
       <div className="container mx-auto max-w-2xl px-4 py-12">
         <h1 className="text-3xl font-bold text-gray-900">{election.title}</h1>
         <p className="mt-4 text-gray-600">
-          This election is still active. Close it to compute results.
+          This election is still active. Results will be available once the creator closes it.
         </p>
-        <button
-          onClick={handleCloseElection}
-          className="mt-6 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
-        >
-          Close Election & Compute Results
-        </button>
       </div>
     );
   }
